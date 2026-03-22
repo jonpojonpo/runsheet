@@ -2,5 +2,12 @@ node_modules/
 dist/
 src-tauri/target/
 src-tauri/binaries/
+src-tauri/.kreuzberg/
+scripts/build/
+.claude/
+.agents/
+skills-lock.json
+Additional-notes.md
+RUNSHEET-SPEC-v2.1.md
 .env
 *.local
