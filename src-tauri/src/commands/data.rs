@@ -225,10 +225,23 @@ async fn ingest_pdf(
     app_handle: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<Vec<TableMeta>, AppError> {
+    // Get page count + outline in one lopdf pass before starting kreuzberg
+    let meta_path = path.clone();
+    let (page_count, outline) = tokio::task::spawn_blocking(move || {
+        let outline = load_pdf_outline(&meta_path);
+        let count = lopdf::Document::load(&meta_path)
+            .map(|d| d.get_pages().len() as u64)
+            .unwrap_or(1)
+            .max(1);
+        (count, outline)
+    })
+    .await
+    .unwrap_or((1, Vec::new()));
+
     let _ = app_handle.emit("pdf:progress", PdfProgressEvent {
-        file: filename,
+        file: filename.clone(),
         page: 0,
-        total: 1,
+        total: page_count,
         tables_found: 0,
     });
 
@@ -241,14 +254,9 @@ async fn ingest_pdf(
         ..Default::default()
     };
 
-    // Run outline extraction (blocking lopdf I/O) concurrently with kreuzberg
-    let outline_path = path.clone();
-    let (result, outline) = tokio::join!(
-        kreuzberg::extract_file(&path, None, &config),
-        tokio::task::spawn_blocking(move || load_pdf_outline(&outline_path)),
-    );
-    let result = result.map_err(|e| AppError::io(format!("PDF extraction failed: {}", e)))?;
-    let outline = outline.unwrap_or_default();
+    let result = kreuzberg::extract_file(&path, None, &config)
+        .await
+        .map_err(|e| AppError::io(format!("PDF extraction failed: {}", e)))?;
 
     // Collect all tables — try top-level first, then per-page
     let mut pending: Vec<(String, Vec<String>, Vec<Vec<String>>)> = Vec::new();
@@ -315,7 +323,7 @@ async fn ingest_pdf(
     // Append the outline as a separate _index table if the PDF has one
     if !outline.is_empty() {
         let headers = vec!["level".to_string(), "title".to_string(), "page".to_string()];
-        let rows = outline
+        let rows: Vec<Vec<String>> = outline
             .into_iter()
             .map(|(level, title, page)| vec![level.to_string(), title, page.to_string()])
             .collect();
@@ -335,6 +343,12 @@ async fn ingest_pdf(
     if results.is_empty() {
         Err(AppError::io("Failed to ingest any content from PDF".to_string()))
     } else {
+        let _ = app_handle.emit("pdf:progress", PdfProgressEvent {
+            file: filename,
+            page: page_count,
+            total: page_count,
+            tables_found: results.len(),
+        });
         Ok(results)
     }
 }
