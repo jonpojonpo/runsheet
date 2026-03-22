@@ -1,0 +1,121 @@
+/* === Reset === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* === Theme ===
+   To retheme: update the values in :root below.
+   --accent       primary interactive colour (buttons, borders, highlights)
+   --accent-fg    text colour on top of --accent backgrounds (white or black)
+   --accent-dim   translucent tint of accent for subtle backgrounds / glows
+   --accent-muted secondary / de-emphasised colour (previously orange)
+   ============= */
+:root {
+  /* surfaces */
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1e1e1e;
+  --border: #2a2a2a;
+  --border-active: #3a3a3a;
+
+  /* text */
+  --text: #e0e0e0;
+  --text-dim: #888;
+  --text-faint: #555;
+
+  /* accent — Pantone 1795 C */
+  --accent: #DA291C;
+  --accent-fg: #fff;
+  --accent-dim: rgba(218, 41, 28, 0.12);
+  --accent-muted: #9E9EA8;
+
+  /* semantic colours — keep distinct from accent */
+  --color-warning: #ffbb33;
+  --color-error: #ff4444;
+  --color-info: #3399ff;
+
+  /* legacy aliases — avoids mass-renaming existing component refs */
+  --accent-green: var(--accent);
+  --accent-orange: var(--accent-muted);
+  --accent-amber: var(--color-warning);
+  --accent-red: var(--color-error);
+  --accent-blue: var(--color-info);
+
+  /* typography */
+  --font-mono: 'Fira Code', 'Courier New', monospace;
+  --font-sans: system-ui, -apple-system, sans-serif;
+
+  /* shape */
+  --radius: 4px;
+  --radius-lg: 8px;
+}
+
+html { height: 100%; overflow: hidden; }
+
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === Scrollbars === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+/* === Buttons === */
+button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+}
+
+button:focus-visible { outline: 1px solid var(--accent-green); }
+
+/* === Input === */
+input, textarea {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: var(--radius);
+  outline: none;
+}
+
+input:focus, textarea:focus { border-color: var(--accent-green); }
+
+/* === Code === */
+code, .mono { font-family: var(--font-mono); font-size: 12px; }
+
+/* === Utilities === */
+.text-green { color: var(--accent-green); }
+.text-orange { color: var(--accent-orange); }
+.text-amber { color: var(--accent-amber); }
+.text-red { color: var(--accent-red); }
+.text-dim { color: var(--text-dim); }
+.text-faint { color: var(--text-faint); }
+
+.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* === Layout helpers === */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
